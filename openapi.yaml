@@ -1,0 +1,1117 @@
+openapi: 3.0.0
+info:
+  title: User API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      summary: Get all users
+      description: Retrieves paginated users.
+      parameters:
+        - in: query
+          name: page
+          description: Page number
+          schema:
+            type: integer
+          example: 1
+        - in: query
+          name: sort
+          description: Property to sort result by
+          schema:
+            type: string
+          example: '_id'
+        - in: query
+          name: sortDirection
+          description: Sort direction, 1 for ascending, -1 for descending
+          schema:
+            type: integer
+          example: 1
+        - in: query
+          name: email
+          description: Filter users by email address
+          schema:
+            type: string
+          example: johndoe@email.com
+        - in: query
+          name: firstName
+          description: Filter users by their first name
+          schema:
+            type: string
+          example: john
+        - in: query
+          name: lastName
+          description: Filter users by their last name
+          schema:
+            type: string
+          example: doe
+        - in: query
+          name: unpaginated
+          description: Paginate or not the results
+          schema:
+            type: boolean
+          example: true
+      responses:
+        '200':
+          description: Successful response with paginated users. The response will be paginated if the 'unpaginated' query param is missing or is set to false. If 'unpaginated' query param is present and set to true the response will include just an array of users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  totalItems:
+                    type: integer
+                    description: Total number of users
+                  limit:
+                    type: integer
+                    description: Number of items per page
+                  currentPage:
+                    type: integer
+                    description: Current page number
+                  totalPages:
+                    type: integer
+                    description: Total number of pages
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates if there is a next page
+                  hasPrevPage:
+                    type: boolean
+                    description: Indicates if there is a previous page
+                  nextPage:
+                    type: integer
+                    description: Next page number
+                  prevPage:
+                    type: integer
+                    description: Previous page number
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/deleted:
+    get:
+      summary: Get deleted users
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /users/{id}:
+    get:
+      summary: Get a single user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to retrieve
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Update a user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      summary: Delete a user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to delete
+      responses:
+        '204':
+          description: User deleted successfully
+  /users/{id}/signature:
+    post:
+      summary: Create a signature for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to add the photo to
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                signature:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Signature created successfully
+  /users/{id}/photos:
+    post:
+      summary: Upload a photo for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to add the photo to
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                userPhoto:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: User photo uploaded successfully
+  /users/{id}/photos/{photoId}:
+    get:
+      summary: Get a user's photo by photo ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: photoId
+          required: true
+          schema:
+            type: string
+          description: ID of the photo to retrieve
+      responses:
+        '200':
+          description: Successful response
+          content:
+            image/jpeg: {}
+        '404':
+          description: Photo not found
+    delete:
+      summary: Delete a user's photo by photo ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: photoId
+          required: true
+          schema:
+            type: string
+          description: ID of the photo to delete
+      responses:
+        '204':
+          description: Photo deleted successfully
+  /users/{id}/restore:
+    post:
+      summary: Restore a deleted user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to restore
+      responses:
+        '200':
+          description: User restored successfully
+  /users/{id}/addresses:
+    get:
+      summary: Get all addresses for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+    post:
+      summary: Create an address for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        '201':
+          description: Address created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+  /users/{id}/addresses/{addressId}:
+    put:
+      summary: Update an address for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: addressId
+          required: true
+          schema:
+            type: string
+          description: ID of the address to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        '200':
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+    delete:
+      summary: Delete an address for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: addressId
+          required: true
+          schema:
+            type: string
+          description: ID of the address to delete
+      responses:
+        '204':
+          description: Address deleted successfully
+  /users/{id}/history:
+    get:
+      summary: Get all history items for a user
+      description: Retrieves paginated history items for a specific user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        - in: query
+          name: page
+          description: Page number
+          schema:
+            type: integer
+          example: 1
+        - in: query
+          name: limit
+          description: Number of items per page
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: Successful response with paginated history items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/History'
+                  totalItems:
+                    type: integer
+                    description: Total number of history items
+                  limit:
+                    type: integer
+                    description: Number of items per page
+                  currentPage:
+                    type: integer
+                    description: Current page number
+                  totalPages:
+                    type: integer
+                    description: Total number of pages
+                  hasNextPage:
+                    type: boolean
+                    description: Indicates if there is a next page
+                  hasPrevPage:
+                    type: boolean
+                    description: Indicates if there is a previous page
+                  nextPage:
+                    type: integer
+                    description: Next page number
+                  prevPage:
+                    type: integer
+                    description: Previous page number
+        '400':
+          description: Invalid user ID provided
+        '500':
+          description: Internal server error
+  /users/{id}/collaborations:
+    get:
+      summary: Get all collaborations for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collaboration'
+    post:
+      summary: Create a collaboration for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Collaboration'
+      responses:
+        '201':
+          description: Collaboration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+  /users/{id}/collaborations/{collaborationId}:
+    put:
+      summary: Update a collaboration for a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: collaborationId
+          required: true
+          schema:
+            type: string
+          description: ID of the collaboration to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Collaboration'
+      responses:
+        '200':
+          description: Collaboration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+  /users/{id}/collaborations/{collaborationId}/documents:
+    post:
+      summary: Upload a document for a users' collaboration item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: collaborationId
+          required: true
+          schema:
+            type: string
+          description: ID of the collaboration
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                businessDocument:
+                  type: string
+                  format: binary
+                documentType:
+                  type: string
+                  enum:
+                    - id
+                    - adminId
+                    - baccalaureateDegree
+                    - bachelorsDegree
+                    - registrationCertificate
+                    - constitutiveDocument
+      responses:
+        '201':
+          description: Collaboration document uploaded successfully
+  /users/{id}/collaborations/{collaborationId}/documents/{documentId}:
+    get:
+      summary: Get a user's collaboration document by document ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: collaborationId
+          required: true
+          schema:
+            type: string
+          description: ID of the collaboration
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+          description: ID of the document to retrieve
+      responses:
+        '200':
+          description: Successful response
+          content:
+            image/jpeg: { }
+        '404':
+          description: Document not found
+    delete:
+      summary: Delete a user's collaboration document by document ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: collaborationId
+          required: true
+          schema:
+            type: string
+          description: ID of collaboration
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+          description: ID of the document to delete
+      responses:
+        '204':
+          description: Photo deleted successfully
+components:
+  schemas:
+    UserInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - personalEmail
+        - role
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        personalEmail:
+          type: string
+          example: johndoe@example.com
+        role:
+          type: string
+          enum:
+            - employee
+            - accounting
+            - admin
+            - hr
+            - manager
+          default: employee
+          example: employee
+        activeDirectoryGroups:
+          type: array
+          items:
+            type: string
+          example: [ "group1", "group2" ]
+        language:
+          type: string
+          enum:
+            - RO
+            - EN
+            - DE
+          default: RO
+          example: RO
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+          default: male
+          example: male
+        phoneNumber:
+          type: string
+          example: "+40 722123123"
+        birthDate:
+          type: string
+          format: date
+          default: '{{now}}'
+          example: 1990-01-02
+        publicBirthDate:
+          type: boolean
+          default: false
+          example: false
+        theme:
+          type: string
+          enum:
+            - dark
+            - light
+          default: dark
+          example: dark
+        isDeleted:
+          type: boolean
+          default: false
+          example: false
+    User:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - personalEmail
+        - role
+      properties:
+        _id:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        email:
+          type: string
+          example: johndoe@example.com
+        personalEmail:
+          type: string
+          example: johndoepersonal@example.com
+        role:
+          type: string
+          enum:
+            - employee
+            - accounting
+            - admin
+            - hr
+            - manager
+          default: employee
+          example: employee
+        activeDirectoryGroups:
+          type: array
+          items:
+            type: string
+          example: ["group1", "group2"]
+        language:
+          type: string
+          enum:
+            - RO
+            - EN
+            - DE
+          default: RO
+          example: RO
+        signature:
+          $ref: '#/components/schemas/File'
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+          default: male
+          example: male
+        phoneNumber:
+          type: string
+          example: "+40 722123123"
+        birthDate:
+          type: string
+          format: date
+          default: '{{now}}'
+          example: 1990-01-02
+        publicBirthDate:
+          type: boolean
+          default: false
+          example: false
+        theme:
+          type: string
+          enum:
+            - dark
+            - light
+          default: dark
+          example: dark
+        photo:
+          $ref: '#/components/schemas/File'
+        clothesSize:
+          type: string
+          enum:
+            - XS
+            - S
+            - M
+            - L
+            - XL
+            - 2XL
+            - 3XL
+          example: L
+        isDeleted:
+          type: boolean
+          default: false
+          example: false
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/History'
+        collaboration:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collaboration'
+        contract:
+          $ref: '#/components/schemas/Contract'
+    Address:
+      type: object
+      required:
+        - userId
+        - street
+        - city
+        - county
+        - country
+      properties:
+        _id:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf7
+        userId:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        type:
+          type: string
+          enum:
+            - business
+            - personal
+          default: personal
+          example: personal
+        street:
+          type: string
+          example: Main Street
+        streetNumber:
+          type: string
+          example: 12A
+        block:
+          type: string
+          example: M3
+        entrance:
+          type: string
+          example: 1
+        floor:
+          type: string
+          example: 1
+        apartment:
+          type: string
+          example: 12
+        zipCode:
+          type: string
+          example: 123123
+        village:
+          type: string
+          example: Smalltown
+        city:
+          type: string
+          example: New York
+        county:
+          type: string
+          example: NY
+        country:
+          type: string
+          example: USA
+    History:
+      type: object
+      required:
+        - userId
+        - createdBy
+        - type
+      properties:
+        _id:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf8
+        createdAt:
+          type: string
+          format: date
+          default: '{{now}}'
+          example: '{{now}}'
+        userId:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        createdBy:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf9
+        type:
+          type: string
+          enum:
+            - create
+            - update
+          default: update
+          example: update
+        eventKey:
+          type: string
+          example: street
+        collectionName:
+          type: string
+          example: addresses
+        oldValue:
+          type: string
+          example: Main
+        newValue:
+          type: string
+          example: West
+    Collaboration:
+      type: object
+      required:
+        - userId
+        - startDate
+        - form
+        - contractType
+        - holidayDays
+        - idNumber
+        - idSeries
+        - idIssueDate
+        - idIssuedBy
+        - personalIdentificationNumber
+      properties:
+        _id:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcfa
+        userId:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        startDate:
+          type: string
+          format: date
+          default: '{{now}}'
+          example: 2020-01-01
+        endDate:
+          type: string
+          format: date
+          example: 1990-01-01
+        form:
+          enum:
+            - CIM
+            - SRL
+            - SRL-D
+            - PFA
+          default: CIM
+          example: CIM
+        contractNumber:
+          type: string
+          example: A1234
+        contractType:
+          enum:
+            - fixed-term
+            - indefinite
+          default: indefinite
+          example: indefinite
+        duration:
+          type: number
+          example: 48
+        holidayDays:
+          type: number
+          default: 22
+          example: 22
+        healthInsuranceCompanyName:
+          type: string
+          example: Random County
+        businessName:
+          type: string
+          example: XYZ Business
+        tin:
+          type: string
+          example: XX32112311
+        nace:
+          type: array
+          items:
+            type: number
+          example: [ 12312 ]
+        commerceChamberRegistrationNumber:
+          type: string
+          example: Z11/3423
+        commerceChamberRegistrationYear:
+          type: number
+          example: 1999
+        vatPayer:
+          type: boolean
+          example: false
+        isAdministrator:
+          type: boolean
+          example: true
+        idNumber:
+          type: number
+          example: 123123
+        idSeries:
+          type: string
+          example: XX
+        idIssueDate:
+          type: string
+          format: date
+          example: 2010-01-01
+        idIssuedBy:
+          type: string
+          example: CountyPolice
+        personalIdentificationNumber:
+          type: number
+          example: 1212121212121
+        administratorIdNumber:
+          type: number
+          example: 123123
+        administratorIdSeries:
+          type: string
+          example: XX
+        administratorIdIssueDate:
+          type: string
+          format: date
+          example: 2010-01-01
+        administratorIdIssuedBy:
+          type: string
+          example: CountyPolice
+        administratorPersonalIdentificationNumber:
+          type: number
+          example: 1212121212121
+    Contract:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        source:
+          type: string
+          enum:
+            - linkedin
+            - recommendation
+            - acquaintance
+            - bestjobs
+            - ejobs
+            - other
+          example: linkedin
+        newSource:
+          type: string
+          example: facebook
+        client:
+          type: array
+          items:
+            type: string
+          example: [ 60aa21cfe4ab3b1a18a0bcf5 ]
+        project:
+          type: array
+          items:
+            type: string
+          example: [ 60aa14cfe4ab3b1a18a0bcf5 ]
+        position:
+          type: string
+          example: developer
+        technology:
+          type: array
+          items:
+            type: string
+          example: [ Angular, Vue ]
+        level:
+          type: string
+          enum:
+            - L1
+            - L2
+            - L3
+            - L4
+            - L5
+          example: L3
+        equipment:
+          type: array
+          items:
+            type: object
+            properties:
+              item:
+                type: string
+                enum:
+                  - laptop
+                  - monitor
+                  - bag
+                  - headset
+                  - mouse-kit
+                  - hdmi-cable
+                  - docking
+                  - other
+                example: laptop
+              additionalItem:
+                type: string
+                example: USB-C cable
+              source:
+                type: string
+                enum:
+                  - backup
+                  - new
+                example: new
+          example: [{item: laptop, source: new}]
+        positionType:
+          type: string
+          enum:
+            - new-invoice
+            - replacement
+          example: new-invoice
+        replacementFor:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        benefits:
+          type: string
+          enum:
+            - standard
+          default: standard
+          example: standard
+        benefitsExtra:
+          type: string
+          example: No medical insurance
+        salary:
+          type: object
+          properties:
+            currency:
+              type: string
+              enum:
+                - RON
+                - EUR
+                - USD
+              example: EUR
+            amount:
+              type: number
+              example: 1500
+          example: { currency: EUR, amount: 1500 }
+    File:
+      type: object
+      required:
+        - userId
+        - minioObjectName
+        - name
+        - size
+      properties:
+        userId:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0bcf5
+        collaborationId:
+          type: string
+          example: 60aa50cfe4ab3b1a18a0dec3
+        minioObjectName:
+          type: string
+          example: '{{now}}example.jpg'
+        name:
+          type: string
+          example: Example Image
+        size:
+          type: number
+          example: 1024
+        thumbnail:
+          type: string
+          format: byte
+          example: '/9j/4AAQSkZJRgABAQEAAAAAAAD/4QBYRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAADZIKSAAEAAAABAQAA6qI
+SAwAAAABAAAAAAAAAAAAAAAACAAAFSAAAAyAAAAGQAAABsAAAABAAAMBAEAAABeAAAAyAAAABsAAAABAAAOoAE
+AAABeAAAAyAAAABwAAAAIAAAAGAAAA4AEAAABeAAAAyAAAABwAAAAgAAAAFAAABQAAAAyAAAABgAAAAgAAAAGA
+AADqAQADAAAAAf/EAAWJAAEAAQAAAAMAAQAA6gEAAAMAAAMAAAABAAADqgEAAAYAAAMAAAABAAADrAEAAAEAAAM
+AAAABAAADrwEAAAMAAAMAAAABAAADsAEAAAMAAAMAAAABAAADsQEAAAMAA'
+        fileType:
+          enum:
+            - photo
+            - signature
+            - document
+          example: photo
+        documentType:
+          enum:
+            - id
+            - adminId
+            - baccalaureateDegree
+            - bachelorsDegree
+            - registrationCertificate
+            - constitutiveDocument
+          example: id
